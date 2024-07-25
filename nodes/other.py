@@ -315,55 +315,6 @@ class JN_TimedeltaFormat:
 
         return formatted_str
 
-class JN_StopIf:
-    CATEGORY = CATEGORY_OTHER
-    RETURN_TYPES = ("*",)
-    RETURN_NAMES = ("flow",)
-    FUNCTION = "run"
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "optional": {
-                "condition": ("BOOLEAN", {"default": False}),
-                "title": ("STRING", {"default": "", "dynamicPrompts": False}),
-                "flow": ("*",),
-                "dependency": ("*", {"multiple": True}),
-            },
-            "required": {
-            },
-        }
-
-    def run(self, condition=False, title="", flow=None, dependency=None):
-        if condition:
-            raise Exception(title)
-
-        return (flow,)
-
-class JN_StopIfOutput:
-    CATEGORY = CATEGORY_OTHER
-    RETURN_TYPES = ()
-    FUNCTION = "run"
-    OUTPUT_NODE = True
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "optional": {
-                "condition": ("BOOLEAN", {"default": False}),
-                "title": ("STRING", {"default": "", "dynamicPrompts": False}),
-                "dependency": ("*", {"multiple": True}),
-            },
-            "required": {
-            },
-        }
-
-    def run(self, condition=False, title="", dependency=None):
-        if condition:
-            raise Exception(title)
-
-        return {"ui": {}}
-
 NODE_CLASS_MAPPINGS = {
     "JN_CoolDown": JN_CoolDown,
     "JN_CoolDownOutput": JN_CoolDownOutput,
@@ -371,8 +322,6 @@ NODE_CLASS_MAPPINGS = {
     "JN_SleepOutput": JN_SleepOutput,
     "JN_Dump": JN_Dump,
     "JN_DumpOutput": JN_DumpOutput,
-    "JN_StopIf": JN_StopIf,
-    "JN_StopIfOutput": JN_StopIfOutput,
     "JN_DatetimeNow": JN_DatetimeNow,
     "JN_DatetimeInfo": JN_DatetimeInfo,
     "JN_DatetimeFormat": JN_DatetimeFormat,
@@ -387,8 +336,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "JN_SleepOutput": "Sleep Output",
     "JN_Dump": "Dump",
     "JN_DumpOutput": "Dump Output",
-    "JN_StopIf": "Stop If",
-    "JN_StopIfOutput": "Stop If Output",
     "JN_DatetimeNow": "Datetime Now",
     "JN_DatetimeInfo": "Datetime Info",
     "JN_DatetimeFormat": "Datetime Format",

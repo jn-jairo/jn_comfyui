@@ -8,6 +8,9 @@ The patches are applied automatically, some features require configuration,
 copy the [jncomfy.yaml.example](jncomfy.yaml.example) to `ComfyUI/jncomfy.yaml`
 and uncomment the configuration for the feature you need.
 
+<details>
+    <summary>Show patches</summary>
+
 ### Preview device
 
 Allows to change the device used for TAESD to render the preview.
@@ -19,6 +22,8 @@ This feature is useful if you don't have enough VRAM to render the preview
 and image on the same device.
 
 ```yaml
+# ComfyUI/jncomfy.yaml
+
 preview_device: cpu
 ```
 
@@ -36,6 +41,8 @@ It matches the package/class that calls the function `comfy.model_management.get
 Example, if it's called at foo.bar.MyCustomNode, any of these will work:
 
 ```yaml
+# ComfyUI/jncomfy.yaml
+
 extension_device:
   foo: cpu
   foo.bar: cpu
@@ -45,6 +52,8 @@ extension_device:
 The first part is always the package/repository name, like in this real example:
 
 ```yaml
+# ComfyUI/jncomfy.yaml
+
 extension_device:
   comfyui_controlnet_aux: cpu
   jn_comfyui.nodes.facerestore: cpu
@@ -56,6 +65,8 @@ just use the directory name inside the `custom_nodes` directory.
 If the custom nodes are inside `custom_nodes/some_custom_nodes_package` you can set:
 
 ```yaml
+# ComfyUI/jncomfy.yaml
+
 extension_device:
   some_custom_nodes_package: cpu
 ```
@@ -82,6 +93,8 @@ You can set how many seconds it waits before checking the temperature again, the
 You can also set for how long it can wait, if you set it to zero it will wait for how long it needs to reach the safe temperature.
 
 ```yaml
+# ComfyUI/jncomfy.yaml
+
 temperature:
   limit:
     execution: # Don't execute a node if the temperature is above the max, but wait cool down to the safe temperature.
@@ -108,6 +121,8 @@ The size of the tensor is used as the base to calculate the memory required and 
 You can change that multiplier with the setting:
 
 ```yaml
+# ComfyUI/jncomfy.yaml
+
 memory_estimation_multiplier: 1
 ```
 
@@ -185,6 +200,117 @@ class ImageGrid:
             # ... rest of the code ...
         return (image_grid,)
 ```
+
+</details>
+
+## Nodes
+
+<details>
+    <summary>Show nodes</summary>
+
+### Image
+
+- **JN_ImageAddMask** - Image Add Mask
+- **JN_ImageBatch** - Image Batch
+- **JN_ImageCenterArea** - Image Center Area
+- **JN_ImageCrop** - Image Crop
+- **JN_ImageGrid** - Image Grid
+- **JN_ImageInfo**: Image Info
+- **JN_ImageSharpness** - Image Sharpness
+- **JN_ImageSquare** - Image Square
+- **JN_ImageUncrop** - Image Uncrop
+- **JN_LoadImageDirectory** - Load Image Directory
+- **JN_MaskInfo** - Mask Info
+- **JN_RemoveBackground** - Remove Background
+
+### Image > Area
+
+- **JN_AreaInfo** - Area Info
+- **JN_AreaNormalize** - Area Normalize
+- **JN_AreaWidthHeight** - Area Width Height
+- **JN_AreaXY** - Area X Y
+
+### Image > Blip
+
+- **JN_Blip** - Blip
+- **JN_BlipLoader** - Blip Loader
+
+### Image > Face
+
+- **JN_CropFace** - Crop Face
+- **JN_FaceRestoreModelLoader** - Face Restore Model Loader
+- **JN_FaceRestoreWithModel** - Face Restore With Model
+
+### Sampling
+
+- **JN_KSampler** - KSampler
+- **JN_KSamplerAdvancedParams** - KSampler Advanced Params
+- **JN_KSamplerFaceRestoreParams** - KSampler Face Restore Params
+- **JN_KSamplerResizeInputParams** - KSampler Resize Input Params
+- **JN_KSamplerResizeMaskAreaParams** - KSampler Resize Mask Area Params
+- **JN_KSamplerResizeOutputParams** - KSampler Resize Output Params
+- **JN_KSamplerSeamlessParams** - KSampler Seamless Params
+- **JN_KSamplerTileParams** - KSampler Tile Params
+
+### Patch
+
+- **JN_Seamless** - Seamless
+- **JN_SeamlessBorder** - Seamless Border
+- **JN_SeamlessBorderCrop** - Seamless Border Crop
+
+### Primitive
+
+- **JN_PrimitiveArrayInfo** - ARRAY INFO
+- **JN_PrimitiveBoolean** - BOOLEAN
+- **JN_PrimitiveFloat** - FLOAT
+- **JN_PrimitiveInt** - INT
+- **JN_PrimitivePrompt** - PROMPT
+- **JN_PrimitiveString** - STRING
+- **JN_PrimitiveStringMultiline** - STRING MULTILINE
+
+### Primitive > Conversion
+
+- **JN_PrimitiveBatchToArray** - BATCH TO ARRAY
+- **JN_PrimitiveStringToArray** - STRING TO ARRAY
+- **JN_PrimitiveToArray** - TO ARRAY
+- **JN_PrimitiveToBoolean** - TO BOOLEAN
+- **JN_PrimitiveToFloat** - TO FLOAT
+- **JN_PrimitiveToInt** - TO INT
+- **JN_PrimitiveToString** - TO STRING
+
+### Primitive > Process
+
+- **JN_BooleanOperation** - Boolean Operation
+- **JN_FirstActive** - First Active
+- **JN_LogicOperation** - Logic Operation
+- **JN_MathOperation** - Math Operation
+- **JN_MathOperationArray** - Math Operation Array
+- **JN_SelectItem** - Select Item
+- **JN_SliceOperation** - Slice Operation
+- **JN_TextConcatenation** - Text Concatenation
+- **JN_TextReplace** - Text Replace
+
+### Workflow
+
+- **JN_Condition** - Condition
+- **JN_StopIf** - Stop If
+- **JN_StopIfOutput** - Stop If Output
+
+### Other
+
+- **JN_CoolDown** - Cool Down
+- **JN_CoolDownOutput** - Cool Down Output
+- **JN_DatetimeFormat** - Datetime Format
+- **JN_DatetimeInfo** - Datetime Info
+- **JN_DatetimeNow** - Datetime Now
+- **JN_Dump** - Dump
+- **JN_DumpOutput** - Dump Output
+- **JN_Sleep** - Sleep
+- **JN_SleepOutput** - Sleep Output
+- **JN_TimedeltaFormat** - Timedelta Format
+- **JN_TimedeltaInfo** - Timedelta Info
+
+</details>
 
 ## License
 

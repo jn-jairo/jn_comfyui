@@ -1,0 +1,31 @@
+# Copy this file to ComfyUI/jncomfy.yaml and uncomment the configuration you need.
+
+# Control which device the preview will use
+# preview_device: cpu
+
+# Control which device the custom nodes will use.
+# It matches the package/class that calls the function model_management.get_torch_device() on the custom node.
+# Example, if it's called at foo.bar.MyCustomNode, any of these will work:
+# extension_device:
+#   foo: cpu
+#   foo.bar: cpu
+#   foo.bar.MyCustomNode: cpu
+
+# extension_device:
+#   comfyui_controlnet_aux: cpu
+#   jn_comfyui.nodes.facerestore: cpu
+
+# Used to compute the required memory for split attention
+# memory_estimation_multiplier: 1
+
+# temperature:
+#   limit:
+#     execution: # Don't execute a node if the temperature is above the max, but wait cool down to the safe temperature.
+#       safe: 90
+#       max: 95
+#     progress: # Don't execute the next step of a node if the temperature is above the max, but wait cool down to the safe temperature.
+#       safe: 90
+#       max: 95
+#   cool_down:
+#     each: 5 # Seconds to wait the temperature cool down before checking the temperature again.
+#     max: 0 # Max seconds to wait the temperature cool down.

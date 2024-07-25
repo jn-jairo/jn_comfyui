@@ -1,0 +1,9 @@
+gputil
+numpy
+opencv-python
+psutil
+rembg
+torch
+torchvision
+spandrel
+spandrel_extra_arches

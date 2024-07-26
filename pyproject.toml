@@ -1,0 +1,15 @@
+[project]
+name = "jn_comfyui"
+description = "ComfyUI extension with patches and nodes.\nPatches:Preview device, Extension device, Temperature, Memory estimation, Optimizations, Easy generic inputs, Easy multiple inputs.\nNODES: Image nodes, Image/Area nodes, Image/Blip nodes, Image/Face nodes, Sampling nodes, Patch nodes, Primitive nodes, Primitive/Conversion nodes, Primitive/Process nodes, Workflow nodes, etc..."
+version = "1.0.0"
+license = {file = "LICENSE"}
+dependencies = ["gputil", "numpy", "opencv-python", "psutil", "rembg", "torch", "torchvision", "spandrel", "spandrel_extra_arches"]
+
+[project.urls]
+Repository = "https://github.com/jn-jairo/jn_comfyui"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "jn_comfyui"
+Icon = ""

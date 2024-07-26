@@ -205,8 +205,8 @@ class JN_KSamplerFaceRestoreParams:
 
 class JN_KSampler:
     CATEGORY = CATEGORY_SAMPLING
-    RETURN_TYPES = ("LATENT", "IMAGE", "IMAGE", "LATENT", "IMAGE", "MASK", "MASK")
-    RETURN_NAMES = ("LATENT", "IMAGE", "FINAL_IMAGE", "INPUT_LATENT", "INPUT_IMAGE", "INPUT_MASK", "FINAL_MASK")
+    RETURN_TYPES = ("LATENT", "IMAGE", "MASK", "LATENT", "IMAGE", "MASK", "LATENT", "IMAGE", "MASK")
+    RETURN_NAMES = ("FINAL_LATENT", "FINAL_IMAGE", "FINAL_MASK", "LATENT", "IMAGE", "MASK", "INPUT_LATENT", "INPUT_IMAGE", "INPUT_MASK")
     FUNCTION = "sample"
 
     @classmethod
@@ -223,7 +223,9 @@ class JN_KSampler:
                 "positive": ("CONDITIONING",),
                 "negative": ("CONDITIONING",),
                 "denoise": ("FLOAT", {"default": 1, "min": 0, "max": 1, "step": 0.01}),
-                "decode_image": ("BOOLEAN", {"default": True}),
+                "output_latent": ("BOOLEAN", {"default": True}),
+                "output_image": ("BOOLEAN", {"default": True}),
+                "output_mask": ("BOOLEAN", {"default": True}),
             },
             "optional": {
                 "latent_image": ("LATENT",),
@@ -231,7 +233,7 @@ class JN_KSampler:
                 "mask": ("MASK",),
                 "only_mask_area": ("BOOLEAN", {"default": False}),
                 "mask_border_percent": ("FLOAT", {"default": 0.125, "min": 0, "max": 0xffffffffffffffff, "step": 0.001}),
-                "grow_mask_by": ("INT", {"default": 6, "min": 0, "max": MAX_RESOLUTION, "step": 1}),
+                "grow_mask_by": ("INT", {"default": 0, "min": 0, "max": MAX_RESOLUTION, "step": 1}),
                 "width": ("INT", {"default": 512, "min": 0, "max": MAX_RESOLUTION, "step": 8}),
                 "height": ("INT", {"default": 512, "min": 0, "max": MAX_RESOLUTION, "step": 8}),
                 "batch_size": ("INT", {"default": 1, "min": 1, "max": 4096}),
@@ -240,9 +242,11 @@ class JN_KSampler:
         }
 
     def sample(self, model, vae, seed, steps, cfg, sampler_name, scheduler, positive, negative, denoise=1,
-            decode_image=True,
+            output_latent=True,
+            output_image=True,
+            output_mask=True,
             resize_input=False,
-            latent_image=None, image=None, mask=None, only_mask_area=False, mask_border_percent=0.125, grow_mask_by=6,
+            latent_image=None, image=None, mask=None, only_mask_area=False, mask_border_percent=0.125, grow_mask_by=0,
             width=512, height=512, batch_size=1,
             params=None,
             **kwargs):
@@ -303,8 +307,8 @@ class JN_KSampler:
         if image is not None:
             latent_image = None
 
-        input_image = image.clone() if image is not None else image
-        input_mask = mask.clone() if mask is not None else mask
+        image_input = image.clone() if image is not None else image
+        mask_input = mask.clone() if mask is not None else mask
 
         if only_mask_area and image is not None and mask is not None:
             mask_area = get_crop_region(mask, multiple_of=8)
@@ -399,64 +403,119 @@ class JN_KSampler:
         wait_cooldown(kind="execution")
 
         if tile_params is not None:
-            output_latent = self.tiled_ksampler(**tile_params, common_ksampler_params=common_ksampler_params, seamless_params=seamless_params)
+            latent_output = self.tiled_ksampler(**tile_params, common_ksampler_params=common_ksampler_params, seamless_params=seamless_params)
         else:
             if seamless_params is not None:
                 common_ksampler_params["model"] = self.seamless_patch(model, **seamless_params)
 
-            output_latent = common_ksampler(**common_ksampler_params)[0]
+            latent_output = common_ksampler(**common_ksampler_params)[0]
 
-        output_image = None
-        final_image = None
-        final_mask = input_mask.clone() if input_mask is not None else input_mask
+        latent_final = None
 
-        if decode_image:
-            wait_cooldown(kind="execution")
-            final_image = output_image = VAEDecode().decode(vae=vae, samples=output_latent)[0]
+        image_output = None
+        image_final = None
 
-            if only_mask_area and image is not None and mask is not None:
-                if resize_mask_area_params is not None:
-                    final_image = output_image = self.resize(
-                        output_image.clone().movedim(-1, 1),
+        mask_output = None
+        mask_final = None
+
+        latent_require_image = face_restore_params or only_mask_area and image is not None and mask is not None
+
+        wait_cooldown(kind="execution")
+
+        if output_mask or output_latent and latent_require_image:
+            mask_output = mask_input.clone() if mask_input is not None else mask_input
+            mask_final = mask_input.clone() if mask_input is not None else mask_input
+
+        if output_image or output_latent and latent_require_image:
+            image_output = VAEDecode().decode(vae=vae, samples=latent_output)[0]
+
+        if not output_latent:
+            latent_output = None
+
+        if only_mask_area and image is not None and mask is not None:
+            if resize_mask_area_params is not None:
+                if image_output is not None:
+                    image_output = self.resize(
+                        image_output.clone().movedim(-1, 1),
                         **{**resize_mask_area_params, "crop": "disabled", "scale_by": 0, "width": cropped_image_width, "height": cropped_image_height}
                     ).movedim(1, -1)
 
-                final_image = output_image = JN_ImageUncrop().run(destination=input_image, source=output_image, area=mask_area, resize_source=False, mask=cropped_mask)[0]
+            if image_output is not None:
+                image_output = JN_ImageUncrop().run(destination=image_input, source=image_output, area=mask_area, resize_source=False, mask=cropped_mask)[0]
 
-            # if input_image is not None and input_mask is not None:
-            #     final_image = output_image = JN_ImageUncrop().run(destination=input_image, source=output_image, area=None, resize_source=False, mask=input_mask)[0]
+                if latent_output is not None:
+                    latent_output = VAEEncode().encode(vae=vae, pixels=image_output.clone())[0]
 
-            seamless_crop_applied = False
+        if image_output is not None:
+            image_final = image_output.clone()
 
-            for param in params:
-                if param["__type__"] == "JN_KSamplerResizeOutputParams":
-                    wait_cooldown(kind="execution")
-                    final_image = self.resize(final_image.clone().movedim(-1, 1), **param).movedim(1, -1)
-                    if final_mask is not None:
-                        final_mask = image_to_mask(self.resize(
-                            mask_to_image(final_mask.clone()).movedim(-1, 1),
-                            **{**param, "upscale_model": None, "crop": "disabled", "scale_by": 0, "width": final_image.shape[2], "height": final_image.shape[1]}
+        if latent_output is not None:
+            latent_final = latent_output.copy()
+            latent_final["samples"] = latent_output["samples"].clone()
+
+        seamless_crop_applied = False
+        encode_latent = False
+
+        for param in params:
+            if param["__type__"] == "JN_KSamplerResizeOutputParams":
+                wait_cooldown(kind="execution")
+
+                if image_final is not None:
+                    image_final = self.resize(image_final.clone().movedim(-1, 1), **param).movedim(1, -1)
+                    if mask_final is not None:
+                        mask_final = image_to_mask(self.resize(
+                            mask_to_image(mask_final.clone()).movedim(-1, 1),
+                            **{**param, "upscale_model": None, "scale_by": 0, "width": image_final.shape[2], "height": image_final.shape[1]}
+                        ).movedim(1, -1))
+                else:
+                    if mask_final is not None:
+                        mask_final = image_to_mask(self.resize(
+                            mask_to_image(mask_final.clone()).movedim(-1, 1),
+                            **{**param, "upscale_model": None}
                         ).movedim(1, -1))
 
-                if param["__type__"] == "JN_KSamplerSeamlessParams" and seamless_params is not None and not seamless_crop_applied:
-                    wait_cooldown(kind="execution")
-                    final_image = self.seamless_crop(final_image, **seamless_params)
-                    if final_mask is not None:
-                        final_mask = image_to_mask(self.seamless_crop(mask_to_image(final_mask.clone()), **seamless_params))
-                    seamless_crop_applied = True
+                if latent_final is not None:
+                    latent_final["samples"] = self.resize(latent_final["samples"], samples_type="latent", **param)
 
-                if param["__type__"] == "JN_KSamplerFaceRestoreParams":
-                    wait_cooldown(kind="execution")
-                    final_image = self.facerestore(final_image, **param)
+            if param["__type__"] == "JN_KSamplerSeamlessParams" and seamless_params is not None and not seamless_crop_applied:
+                wait_cooldown(kind="execution")
 
-        if resize_output_params is not None:
-            if only_mask_area and image is not None and mask is not None:
-                output_latent = VAEEncode().encode(vae=vae, pixels=output_image.clone())[0]
+                if image_final is not None:
+                    image_final = self.seamless_crop(image_final.clone().movedim(-1, 1), **seamless_params).movedim(1, -1)
 
-            for param in resize_output_params:
-                output_latent["samples"] = self.resize(output_latent["samples"], samples_type="latent", **param)
+                if mask_final is not None:
+                    mask_final = image_to_mask(self.seamless_crop(mask_to_image(mask_final.clone()).movedim(-1, 1), **seamless_params).movedim(1, -1))
 
-        return (output_latent, output_image, final_image, latent_image, input_image, input_mask, final_mask)
+                if latent_final is not None:
+                    latent_final["samples"] = self.seamless_crop(latent_final["samples"], **seamless_params)
+
+                seamless_crop_applied = True
+
+            if param["__type__"] == "JN_KSamplerFaceRestoreParams":
+                wait_cooldown(kind="execution")
+                if image_final is not None:
+                    image_final = self.facerestore(image_final, **param)
+                    encode_latent = True
+
+        if encode_latent and latent_final is not None and image_final is not None:
+            latent_final = VAEEncode().encode(vae=vae, pixels=image_final.clone())[0]
+
+        if not output_latent:
+            latent_final = None
+            latent_output = None
+            latent_image = None
+
+        if not output_image:
+            image_final = None
+            image_output = None
+            image_input = None
+
+        if not output_mask:
+            mask_final = None
+            mask_output = None
+            mask_input = None
+
+        return (latent_final, image_final, mask_final, latent_output, image_output, mask_output, latent_image, image_input, mask_input)
 
     def tiled_ksampler(self, width, height, overlay_percent, steps_chunk=0, common_ksampler_params=None, seamless_params=None, **kwargs):
         latent_image = common_ksampler_params["latent"]
@@ -665,7 +724,7 @@ class JN_KSampler:
 
         return restored_image
 
-    def seamless_crop(self, image, direction, border_percent, **kwargs):
+    def seamless_crop(self, samples, direction, border_percent, **kwargs):
         def crop(tensor, direction, border_percent):
             (batch_size, channels, height, width) = tensor.shape
 
@@ -679,7 +738,7 @@ class JN_KSampler:
 
             return tensor
 
-        return crop(image.clone().movedim(-1, 1), direction, border_percent).movedim(1, -1)
+        return crop(samples.clone(), direction, border_percent)
 
     def seamless_patch(self, model, direction, border_percent, start_percent, end_percent, **kwargs):
         sigma_start = model.model.model_sampling.percent_to_sigma(start_percent)

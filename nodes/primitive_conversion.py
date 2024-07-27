@@ -190,7 +190,7 @@ class JN_PrimitiveToArray:
         selected = None
 
         if merge_array_items:
-            values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values)
+            values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values, [None])
 
         if only_active:
             values = [value for value in values if value is not None]

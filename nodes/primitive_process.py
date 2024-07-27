@@ -144,7 +144,7 @@ class JN_MathOperationArray:
     def run(self, operation, values=None):
         if values is None:
             values = []
-        values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values)
+        values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values, [None])
         values = [value for value in values if value is not None]
         if len(values) > 0:
             value = math_operation_array(values, operation)
@@ -220,7 +220,7 @@ class JN_TextConcatenation:
         if glue is None:
             glue = ""
 
-        values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values)
+        values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values, [None])
         values = [to_string(value) for value in values]
         values = [value for value in values if value is not None]
 
@@ -273,7 +273,7 @@ class JN_FirstActive:
         first_active = None
 
         if merge_array_items:
-            values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values)
+            values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values, [None])
 
         for value in values:
             if value is not None:
@@ -306,7 +306,7 @@ class JN_SelectItem:
         selected = None
 
         if merge_array_items:
-            values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values)
+            values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values, [None])
 
         if only_active:
             values = [value for value in values if value is not None]
@@ -343,7 +343,7 @@ class JN_SliceOperation:
         if values is None:
             values = []
         if merge_array_items:
-            values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values)
+            values = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), values, [None])
 
         if only_active:
             values = [value for value in values if value is not None]

@@ -210,25 +210,36 @@ class ImageGrid:
 
 ### Image
 
+- **JN_ImageAddBackground** - Image Add Background
 - **JN_ImageAddMask** - Image Add Mask
 - **JN_ImageBatch** - Image Batch
 - **JN_ImageCenterArea** - Image Center Area
 - **JN_ImageCrop** - Image Crop
 - **JN_ImageGrid** - Image Grid
 - **JN_ImageInfo**: Image Info
+- **JN_ImageRemoveBackground** - Image Remove Background
 - **JN_ImageSharpness** - Image Sharpness
 - **JN_ImageSquare** - Image Square
+- **JN_ImageToMask** - Image To Mask
 - **JN_ImageUncrop** - Image Uncrop
 - **JN_LoadImageDirectory** - Load Image Directory
+- **JN_MaskBatch** - Mask Batch
 - **JN_MaskInfo** - Mask Info
-- **JN_RemoveBackground** - Remove Background
+- **JN_MaskToImage** - Mask To Image
+- **JN_PreviewImage** - Preview Image
+- **JN_PreviewMask** - Preview Mask
+- **JN_RemBGSession** - RemBG Session
+- **JN_SaveImage** - Save Image
 
 ### Image > Area
 
+- **JN_AreaAround** - Area Around
 - **JN_AreaInfo** - Area Info
 - **JN_AreaNormalize** - Area Normalize
+- **JN_AreaToMask** - Area To Mask
 - **JN_AreaWidthHeight** - Area Width Height
 - **JN_AreaXY** - Area X Y
+- **JN_MaskToArea** - Mask To Area
 
 ### Image > Blip
 

@@ -242,7 +242,7 @@ class JN_FaceRestoreWithModel:
 
         return (restored_img_tensor, out_faces_images_restored, out_faces_images, out_faces_areas)
 
-class JN_CropFace:
+class JN_FaceCrop:
     CATEGORY = CATEGORY_IMAGE_FACE
     RETURN_TYPES = ("IMAGE", "ARRAY")
     RETURN_NAMES = ("IMAGE", "AREA_ARRAY")
@@ -331,11 +331,11 @@ class JN_FaceRestoreModelLoader:
 NODE_CLASS_MAPPINGS = {
     "JN_FaceRestoreModelLoader": JN_FaceRestoreModelLoader,
     "JN_FaceRestoreWithModel": JN_FaceRestoreWithModel,
-    "JN_CropFace": JN_CropFace,
+    "JN_FaceCrop": JN_FaceCrop,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "JN_FaceRestoreModelLoader": "Face Restore Model Loader",
     "JN_FaceRestoreWithModel": "Face Restore With Model",
-    "JN_CropFace": "Crop Face",
+    "JN_FaceCrop": "Face Crop",
 }

@@ -248,7 +248,7 @@ class ImageGrid:
 
 ### Image > Face
 
-- **JN_CropFace** - Crop Face
+- **JN_FaceCrop** - Face Crop
 - **JN_FaceRestoreModelLoader** - Face Restore Model Loader
 - **JN_FaceRestoreWithModel** - Face Restore With Model
 

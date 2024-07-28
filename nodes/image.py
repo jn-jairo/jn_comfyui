@@ -1242,40 +1242,46 @@ class JN_Blip:
             "required": {
                 "model": ("BLIP_MODEL",),
                 "processor": ("BLIP_PROCESSOR",),
-                "images": ("IMAGE",),
+                "images": ("*", {"multiple": True}),
             },
             "optional": {
-                "conditioning": ("STRING", {"default": "", "dynamicPrompts": True}),
                 "max_new_tokens": ("INT", {"default": 1000, "min": 0, "max": 0xffffffffffffffff}),
                 "skip_special_tokens": ("BOOLEAN", {"default": True}),
+                "conditioning": ("STRING", {"default": "", "dynamicPrompts": False, "multiline": True}),
             },
         }
 
     def run(self, model, processor, images, conditioning="", max_new_tokens=1000, skip_special_tokens=True):
-        images = (images.clone().reshape((-1, images.shape[-3], images.shape[-2], images.shape[-1])) * 255).to(torch.uint8)
+        images = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), images, [None])
+        images = [image for image in images if image is not None]
 
-        kargs = {
-            "images": images,
-            "return_tensors": "pt",
-        }
-
-        if conditioning != "":
-            kargs["text"] = [conditioning for i in range(0, images.shape[0])]
-
-        inputs = processor(**kargs).to(model.device, model.dtype)
-
-        out = model.generate(**inputs, max_new_tokens=max_new_tokens)
+        image_list = images
 
         texts = []
 
-        for x in range(0, out.shape[0]):
-            text = processor.decode(out[x], skip_special_tokens=skip_special_tokens)
-            text = self.clear_text(text)
-            texts.append(text)
+        for images in image_list:
+            images = (images.clone().reshape((-1, images.shape[-3], images.shape[-2], images.shape[-1])) * 255).to(torch.uint8)
 
-        first_text = texts[0] if len(texts) > 0 else None
+            kargs = {
+                "images": images,
+                "return_tensors": "pt",
+            }
 
-        return (first_text, texts)
+            if conditioning != "":
+                kargs["text"] = [conditioning for i in range(0, images.shape[0])]
+
+            inputs = processor(**kargs).to(model.device, model.dtype)
+
+            out = model.generate(**inputs, max_new_tokens=max_new_tokens)
+
+            for x in range(0, out.shape[0]):
+                text = processor.decode(out[x], skip_special_tokens=skip_special_tokens)
+                text = self.clear_text(text)
+                texts.append(text)
+
+        text = "\n".join(texts)
+
+        return (text, texts)
 
     def clear_text(self, text):
         remove_texts = [

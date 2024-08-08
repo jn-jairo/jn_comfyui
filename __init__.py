@@ -13,6 +13,35 @@ try:
 except:
     pass
 
+import folder_paths
+
+def make_dir(name, base_dir):
+    if name not in folder_paths.folder_names_and_paths:
+        new_dir = os.path.join(base_dir, name)
+        os.makedirs(new_dir, exist_ok=True)
+        folder_paths.add_model_folder_path(name, new_dir)
+
+def make_dirs(names, base_dir):
+    for name in names:
+        make_dir(name, base_dir)
+
+MODELS_DIRS = [
+    "meow",
+    "facerestore_models",
+    "facedetection",
+]
+
+make_dirs(MODELS_DIRS, folder_paths.models_dir)
+
+# NLTK
+os.environ["NLTK_DATA"] = os.path.join(folder_paths.get_folder_paths("meow")[0], "nltk")
+os.makedirs(os.environ["NLTK_DATA"], exist_ok=True)
+import nltk
+try:
+    nltk.sent_tokenize("english", language="english")
+except:
+    nltk.download("punkt")
+
 def load_nodes():
     error_messages = []
     node_class_mappings = {}

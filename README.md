@@ -57,6 +57,7 @@ The first part is always the package/repository name, like in this real example:
 extension_device:
   comfyui_controlnet_aux: cpu
   jn_comfyui.nodes.facerestore: cpu
+  jn_comfyui.extra.facelib : cpu
 ```
 
 It is easy to change the device for all custom nodes from the same repository,
@@ -208,6 +209,74 @@ class ImageGrid:
 <details>
     <summary>Show nodes</summary>
 
+### Audio
+
+- **JN_AudioArrayToBatch** - Audio Array To Batch
+- **JN_AudioBatchToArray** - Audio Batch To Array
+- **JN_AudioPlot** - Audio Plot
+- **JN_LoadAudioDirectory** - Load Audio Directory
+- **JN_PreviewAudio** - Preview Audio
+- **JN_SaveAudio** - Save Audio
+
+### Audio > Channels
+
+- **JN_AudioGetChannels** - Audio Get Channels
+- **JN_AudioSetChannels** - Audio Set Channels
+- **JN_AudioStackChannels** - Audio Stack Channels
+
+### Audio > Samples
+
+- **JN_AudioConcatenation** - Audio Concatenation
+- **JN_AudioSlice** - Audio Slice
+- **JN_AudioTrimSilence** - Audio Trim Silence
+
+### Audio > Edit
+
+- **JN_AudioAutoTune** - Audio Auto Tune
+- **JN_AudioNoiseReduction** - Audio Noise Reduction
+- **JN_AudioNormalize** - Audio Normalize
+- **JN_AudioPitch** - Audio Pitch
+- **JN_AudioReverberation** - Audio Reverberation
+- **JN_AudioSampleRate** - Audio Sample Rate
+- **JN_AudioSpeed** - Audio Speed
+- **JN_AudioTempo** - Audio Tempo
+- **JN_AudioVolume** - Audio Volume
+
+### Audio > Meow
+
+- **JN_MeowSentenceSplit** - Meow Sentence Split
+- **JN_MeowSaveVoice** - Meow Save Voice
+- **JN_MeowLoadVoice** - Meow Load Voice
+
+### Audio > Meow > TTS
+
+- **JN_MeowTts** - Meow TTS
+- **JN_MeowTtsAudioToContext** - Meow TTS Audio To Context
+- **JN_MeowTtsCoarse** - Meow TTS Coarse
+- **JN_MeowTtsDecode** - Meow TTS Decode
+- **JN_MeowTtsFine** - Meow TTS Fine
+- **JN_MeowTtsLoadContext** - Meow TTS Load Context
+- **JN_MeowTtsModel** - Meow TTS Model
+- **JN_MeowTtsModelCoarse** - Meow TTS Model Coarse
+- **JN_MeowTtsModelEncodec** - Meow TTS Model Encodec
+- **JN_MeowTtsModelFine** - Meow TTS Model Fine
+- **JN_MeowTtsModelHubert** - Meow TTS Model Hubert
+- **JN_MeowTtsModelSemantic** - Meow TTS Model Semantic
+- **JN_MeowTtsSaveContext** - Meow TTS Save Context
+- **JN_MeowTtsSemantic** - Meow TTS Semantic
+- **JN_MeowTtsTokenizerHubert** - Meow TTS Tokenizer Hubert
+
+### Audio > Meow > VC
+
+- **JN_MeowVc** - Meow Voice Conversion
+- **JN_MeowVcConvertVoice** - Meow VC Convert Voice
+- **JN_MeowVcEncodeSource** - Meow VC Encode Source
+- **JN_MeowVcEncodeTarget** - Meow VC Encode Target
+- **JN_MeowVcLoadSpeaker** - Meow VC Load Speaker
+- **JN_MeowVcModelFreeVC** - Meow VC Model FreeVC
+- **JN_MeowVcModelWavLM** - Meow VC Model WavLM
+- **JN_MeowVcSaveSpeaker** - Meow VC Save Speaker
+
 ### Image
 
 - **JN_ImageAddBackground** - Image Add Background
@@ -293,6 +362,7 @@ class ImageGrid:
 
 - **JN_BooleanOperation** - Boolean Operation
 - **JN_FirstActive** - First Active
+- **JN_KeyValue** - Key Value
 - **JN_LogicOperation** - Logic Operation
 - **JN_MathOperation** - Math Operation
 - **JN_MathOperationArray** - Math Operation Array
@@ -316,12 +386,21 @@ class ImageGrid:
 - **JN_DatetimeNow** - Datetime Now
 - **JN_Dump** - Dump
 - **JN_DumpOutput** - Dump Output
+- **JN_Exec** - Exec
+- **JN_ExecOutput** - Exec Output
 - **JN_Sleep** - Sleep
 - **JN_SleepOutput** - Sleep Output
+- **JN_TensorInfo** - Tensor Info
 - **JN_TimedeltaFormat** - Timedelta Format
 - **JN_TimedeltaInfo** - Timedelta Info
 
 </details>
+
+## References
+
+- [mav-rik/facerestore_cf](https://github.com/mav-rik/facerestore_cf) face restore
+- [suno-ai/bark](https://github.com/suno-ai/bark) text-to-speech
+- [OlaWod/FreeVC](https://github.com/OlaWod/FreeVC) voice conversion
 
 ## License
 

@@ -1,16 +1,6 @@
 import os
 import folder_paths
 
-if "facerestore_models" not in folder_paths.folder_names_and_paths:
-    dir_facerestore_models = os.path.join(folder_paths.models_dir, "facerestore_models")
-    os.makedirs(dir_facerestore_models, exist_ok=True)
-    folder_paths.add_model_folder_path("facerestore_models", dir_facerestore_models)
-
-if "facedetection" not in folder_paths.folder_names_and_paths:
-    dir_facedetection = os.path.join(folder_paths.models_dir, "facedetection")
-    os.makedirs(dir_facedetection, exist_ok=True)
-    folder_paths.add_model_folder_path("facedetection", dir_facedetection)
-
 from comfy import model_management
 import torch
 import comfy.utils
@@ -18,13 +8,13 @@ import numpy as np
 import cv2
 import math
 import sys
-from .facelib.utils.face_restoration_helper import FaceRestoreHelper
-from .facelib.detection.retinaface import retinaface
+from ..extra.facelib.utils.face_restoration_helper import FaceRestoreHelper
+from ..extra.facelib.detection.retinaface import retinaface
 from torchvision.transforms.functional import normalize
 from spandrel import ModelLoader
 import logging
 
-from ...utils import CATEGORY_IMAGE_FACE
+from ..utils import CATEGORY_IMAGE_FACE
 
 import warnings
 warnings.filterwarnings('ignore', category=UserWarning, message='TypedStorage is deprecated')

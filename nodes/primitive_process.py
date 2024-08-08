@@ -317,6 +317,30 @@ class JN_SelectItem:
 
         return (selected,)
 
+class JN_KeyValue:
+    CATEGORY = CATEGORY_PRIMITIVE_PROCESS
+    RETURN_TYPES = ("*",)
+    FUNCTION = "run"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "value": ("*",),
+                "key": ("STRING", {"default": "", "dynamicPrompts": False}),
+            },
+        }
+
+    def run(self, value, key):
+        if isinstance(value, dict):
+            output = value[key] if key in value else None
+        elif hasattr(value, key):
+            output = getattr(value, key, None)
+        else:
+            output = None
+
+        return (output,)
+
 class JN_SliceOperation:
     CATEGORY = CATEGORY_PRIMITIVE_PROCESS
     RETURN_TYPES = ("*",)
@@ -362,6 +386,7 @@ NODE_CLASS_MAPPINGS = {
     "JN_TextReplace": JN_TextReplace,
     "JN_FirstActive": JN_FirstActive,
     "JN_SelectItem": JN_SelectItem,
+    "JN_KeyValue": JN_KeyValue,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -374,4 +399,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "JN_TextReplace": "Text Replace",
     "JN_FirstActive": "First Active",
     "JN_SelectItem": "Select Item",
+    "JN_KeyValue": "Key Value",
 }

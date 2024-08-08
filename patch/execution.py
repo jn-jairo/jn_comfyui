@@ -124,6 +124,11 @@ def patchExecution(config):
                 "current_inputs": input_data_formatted,
                 "current_outputs": output_data_formatted
             }
+
+            if isinstance(ex, comfy.model_management.OOM_EXCEPTION):
+                logging.error("Got an OOM, unloading all loaded models.")
+                comfy.model_management.unload_all_models()
+
             return (False, error_details, ex)
 
         executed.add(unique_id)
@@ -149,6 +154,7 @@ def patchExecution(config):
         if hasattr(obj_class, "VALIDATE_INPUTS"):
             validate_function_inputs = inspect.getfullargspec(obj_class.VALIDATE_INPUTS).args
 
+        vals = None
         for x in required_inputs:
             missing = True
             vals = []
@@ -319,6 +325,8 @@ def patchExecution(config):
                                 errors.append(error)
                                 continue
 
+        del vals
+
         if len(validate_function_inputs) > 0:
             input_data_all = get_input_data(inputs, obj_class, unique_id)
             input_filtered = {}
@@ -342,7 +350,7 @@ def patchExecution(config):
                             "extra_info": {
                                 "input_name": x,
                                 "input_config": info,
-                                "received_value": val,
+                                "received_value": input_filtered[x],
                             }
                         }
                         errors.append(error)

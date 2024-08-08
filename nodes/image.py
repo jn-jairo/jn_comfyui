@@ -1033,7 +1033,7 @@ class JN_SaveImage:
         }
 
     def run(self, images, filename_prefix="ComfyUI", prompt=None, extra_pnginfo=None):
-        return self.save_images(images, filename_prefix, prompt, extra_pnginfo)
+        return self.save_images(images=images, filename_prefix=filename_prefix, prompt=prompt, extra_pnginfo=extra_pnginfo)
 
     def save_images(self, images, filename_prefix="ComfyUI", prompt=None, extra_pnginfo=None):
         images = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), images, [None])

@@ -134,25 +134,25 @@ class JN_Dump:
             "optional": {
                 "title": ("STRING", {"default": "", "dynamicPrompts": False}),
                 "flow": ("*",),
-                "dependency": ("*", {"multiple": True}),
+                "value": ("*", {"multiple": True}),
             },
             "required": {
                 "mode_repr": ("BOOLEAN", {"default": False}),
             },
         }
 
-    def run(self, title="", flow=None, dependency=None, mode_repr=True):
+    def run(self, title="", flow=None, value=None, mode_repr=True):
         print("JN_Dump", title)
 
         print("flow:")
         print(repr(flow) if mode_repr else flow)
 
-        print("dependency:")
-        if isinstance(dependency, list):
-            for dep in dependency:
+        print("value:")
+        if isinstance(value, list):
+            for dep in value:
                 print(repr(dep) if mode_repr else dep)
         else:
-            print(repr(dependency) if mode_repr else dependency)
+            print(repr(value) if mode_repr else value)
 
         return (flow,)
 
@@ -167,22 +167,22 @@ class JN_DumpOutput:
         return {
             "optional": {
                 "title": ("STRING", {"default": "", "dynamicPrompts": False}),
-                "dependency": ("*", {"multiple": True}),
+                "value": ("*", {"multiple": True}),
             },
             "required": {
                 "mode_repr": ("BOOLEAN", {"default": False}),
             },
         }
 
-    def run(self, title="", dependency=None, mode_repr=True):
+    def run(self, title="", value=None, mode_repr=True):
         print("JN_DumpOutput", title)
 
-        print("dependency:")
-        if isinstance(dependency, list):
-            for dep in dependency:
+        print("value:")
+        if isinstance(value, list):
+            for dep in value:
                 print(repr(dep) if mode_repr else dep)
         else:
-            print(repr(dependency) if mode_repr else dependency)
+            print(repr(value) if mode_repr else value)
 
         return {"ui": {}}
 
@@ -315,6 +315,78 @@ class JN_TimedeltaFormat:
 
         return formatted_str
 
+class JN_TensorInfo:
+    CATEGORY = CATEGORY_OTHER
+    RETURN_TYPES = ("ARRAY", "DTYPE", "DEVICE")
+    RETURN_NAMES = ("shape", "dtype", "device")
+    FUNCTION = "run"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "value": ("*",),
+            },
+        }
+
+    def run(self, value):
+        shape = list(value.shape)
+        dtype = value.dtype
+
+        if hasattr(value, "device"):
+            device = value.device
+        else:
+            device = None
+
+        return (shape, dtype, device)
+
+class JN_Exec:
+    CATEGORY = CATEGORY_OTHER
+    RETURN_TYPES = ("*",)
+    RETURN_NAMES = ("flow",)
+    FUNCTION = "run"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "optional": {
+                "flow": ("*",),
+                "dependency": ("*", {"multiple": True}),
+            },
+            "required": {
+                "code": ("STRING", {"default": "", "dynamicPrompts": False, "multiline": True}),
+            },
+        }
+
+    def run(self, code, flow=None, dependency=None):
+        print("JN_Exec")
+        exec(code)
+
+        return (flow,)
+
+class JN_ExecOutput:
+    CATEGORY = CATEGORY_OTHER
+    RETURN_TYPES = ()
+    FUNCTION = "run"
+    OUTPUT_NODE = True
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "optional": {
+                "dependency": ("*", {"multiple": True}),
+            },
+            "required": {
+                "code": ("STRING", {"default": "", "dynamicPrompts": False, "multiline": True}),
+            },
+        }
+
+    def run(self, code, dependency=None):
+        print("JN_ExecOutput")
+        exec(code)
+
+        return {"ui": {}}
+
 NODE_CLASS_MAPPINGS = {
     "JN_CoolDown": JN_CoolDown,
     "JN_CoolDownOutput": JN_CoolDownOutput,
@@ -327,6 +399,9 @@ NODE_CLASS_MAPPINGS = {
     "JN_DatetimeFormat": JN_DatetimeFormat,
     "JN_TimedeltaInfo": JN_TimedeltaInfo,
     "JN_TimedeltaFormat": JN_TimedeltaFormat,
+    "JN_TensorInfo": JN_TensorInfo,
+    "JN_Exec": JN_Exec,
+    "JN_ExecOutput": JN_ExecOutput,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -341,4 +416,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "JN_DatetimeFormat": "Datetime Format",
     "JN_TimedeltaInfo": "Timedelta Info",
     "JN_TimedeltaFormat": "Timedelta Format",
+    "JN_TensorInfo": "Tensor Info",
+    "JN_Exec": "Exec",
+    "JN_ExecOutput": "Exec Output",
 }

@@ -14,6 +14,7 @@
 # extension_device:
 #   comfyui_controlnet_aux: cpu
 #   jn_comfyui.nodes.facerestore: cpu
+#   jn_comfyui.extra.facelib : cpu
 
 # Used to compute the required memory for split attention
 # memory_estimation_multiplier: 1

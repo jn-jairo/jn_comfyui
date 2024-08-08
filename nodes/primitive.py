@@ -25,7 +25,7 @@ class JN_PrimitiveInt:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "value": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
+                "value": ("INT", {"default": 0, "min": -0xffffffffffffffff, "max": 0xffffffffffffffff}),
             },
         }
 
@@ -41,7 +41,7 @@ class JN_PrimitiveFloat:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "value": ("FLOAT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
+                "value": ("FLOAT", {"default": 0, "min": -0xffffffffffffffff, "max": 0xffffffffffffffff, "step": 0.01}),
             },
         }
 

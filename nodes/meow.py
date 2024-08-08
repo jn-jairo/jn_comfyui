@@ -759,11 +759,11 @@ class JN_MeowVcEncodeTarget:
         }
 
     def run(self, freevc, audio, device):
-        audios = audio
+        audios = [audio]
         audios = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), audios, [None])
         audios = [audio for audio in audios if audio is not None]
         audios = reduce(lambda a, b: (a if isinstance(a, list) else batch_to_array(a)) + (b if isinstance(b, list) else batch_to_array(b)), audios, [])
-        audio = audio[0]
+        audio = audios[0]
 
         device = get_device(device)
 

@@ -1438,11 +1438,132 @@ class JN_AudioPlot:
 
         return image
 
+class JN_AudioCompare:
+    CATEGORY = CATEGORY_AUDIO
+    RETURN_TYPES = ("BOOLEAN", "BOOLEAN", "FLOAT", "ARRAY")
+    RETURN_NAMES = ("equal", "different", "difference", "differences")
+    FUNCTION = "run"
+
+    AGGREGATORS = [
+        "average",
+        "sum",
+    ]
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "audios": ("*", {"multiple": True}),
+
+                "difference_limit": ("FLOAT", {"default": 250, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
+
+                "differences_aggregator": (s.AGGREGATORS,),
+                "features_aggregator": (s.AGGREGATORS,),
+
+                "waveform": ("BOOLEAN", {"default": False}),
+                "pitch": ("BOOLEAN", {"default": False}),
+                "loudness": ("BOOLEAN", {"default": False}),
+                "strength": ("BOOLEAN", {"default": False}),
+
+                "waveform_weight": ("FLOAT", {"default": 0.01, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
+                "pitch_weight": ("FLOAT", {"default": 0.05, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
+                "loudness_weight": ("FLOAT", {"default": 10, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
+                "strength_weight": ("FLOAT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
+            },
+        }
+
+    def run(self, audios, difference_limit=0,
+            differences_aggregator="average", features_aggregator="average",
+            waveform=False, waveform_weight=0,
+            pitch=False, pitch_weight=0,
+            loudness=False, loudness_weight=0,
+            strength=False, strength_weight=0):
+        audios = [JN_AudioArrayToBatch().run(audios=audios)[0]]
+        audios = JN_AudioBatchToArray().run(audios=audios)[0]
+
+        differences = []
+
+        features = {
+            "waveform": [],
+            "pitch": [],
+            "loudness": [],
+            "strength": [],
+        }
+
+        for audio_idx, audio in enumerate(audios):
+            if audio_idx == 0:
+                c_audio = clone_audio(audio)
+                sample_rate = audio["sample_rate"]
+                np_audio = c_audio["waveform"].cpu().squeeze(0).numpy()
+
+                # Save features of the target
+                for channel in range(np_audio.shape[0]):
+                    if waveform:
+                        features["waveform"].append(np_audio[channel])
+                    if pitch:
+                        _, audio_pitch = librosa.effects.hpss(np_audio[channel])
+                        features["pitch"].append(audio_pitch)
+                    if loudness:
+                        audio_loudness = librosa.feature.rms(y=np_audio[channel])[0]
+                        features["loudness"].append(audio_loudness)
+                    if strength:
+                        audio_strength = librosa.onset.onset_strength(y=np_audio[channel], sr=sample_rate)
+                        features["strength"].append(audio_strength)
+            else:
+                # Compare with the target
+                if waveform or pitch or loudness or strength:
+                    c_audio = clone_audio(audio)
+                    sample_rate = audio["sample_rate"]
+                    np_audio = c_audio["waveform"].cpu().squeeze(0).numpy()
+
+                    audio_diff = []
+
+                    for channel in range(np_audio.shape[0]):
+                        channel_diff = []
+
+                        if waveform:
+                            channel_diff.append(waveform_weight * np.sum(np.abs(features["waveform"][channel] - np_audio[channel])))
+                        if pitch:
+                            _, audio_pitch = librosa.effects.hpss(np_audio[channel])
+                            channel_diff.append(pitch_weight * np.sum(np.abs(features["pitch"][channel] - audio_pitch)))
+                        if loudness:
+                            audio_loudness = librosa.feature.rms(y=np_audio[channel])[0]
+                            channel_diff.append(loudness_weight * np.sum(np.abs(features["loudness"][channel] - audio_loudness)))
+                        if strength:
+                            audio_strength = librosa.onset.onset_strength(y=np_audio[channel], sr=sample_rate)
+                            channel_diff.append(strength_weight * np.sum(np.abs(features["strength"][channel] - audio_strength)))
+
+                        if features_aggregator == "sum":
+                            channel_diff = np.sum(channel_diff)
+                        else:
+                            channel_diff = np.average(channel_diff)
+
+                        audio_diff.append(channel_diff)
+
+                    audio_diff = np.average(audio_diff)
+                else:
+                    audio_diff = np.inf
+
+                differences.append(audio_diff)
+
+        if len(differences) > 0:
+            if differences_aggregator == "sum":
+                difference = np.sum(differences)
+            else:
+                difference = np.average(differences)
+        else:
+            difference = np.inf
+
+        equal = difference <= difference_limit
+
+        return (equal, not equal, difference, differences)
+
 NODE_CLASS_MAPPINGS = {
     "JN_SaveAudio": JN_SaveAudio,
     "JN_PreviewAudio": JN_PreviewAudio,
     "JN_LoadAudioDirectory": JN_LoadAudioDirectory,
     "JN_AudioPlot": JN_AudioPlot,
+    "JN_AudioCompare": JN_AudioCompare,
 
     "JN_AudioBatchToArray": JN_AudioBatchToArray,
     "JN_AudioArrayToBatch": JN_AudioArrayToBatch,
@@ -1472,6 +1593,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "JN_PreviewAudio": "Preview Audio",
     "JN_LoadAudioDirectory": "Load Audio Directory",
     "JN_AudioPlot": "Audio Plot",
+    "JN_AudioCompare": "Audio Compare",
 
     "JN_AudioBatchToArray": "Audio Batch To Array",
     "JN_AudioArrayToBatch": "Audio Array To Batch",

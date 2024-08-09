@@ -213,6 +213,7 @@ class ImageGrid:
 
 - **JN_AudioArrayToBatch** - Audio Array To Batch
 - **JN_AudioBatchToArray** - Audio Batch To Array
+- **JN_AudioCompare** - Audio Compare
 - **JN_AudioPlot** - Audio Plot
 - **JN_LoadAudioDirectory** - Load Audio Directory
 - **JN_PreviewAudio** - Preview Audio
@@ -374,6 +375,8 @@ class ImageGrid:
 ### Workflow
 
 - **JN_Condition** - Condition
+- **JN_Flow** - Flow
+- **JN_FlowOutput** - Flow Output
 - **JN_StopIf** - Stop If
 - **JN_StopIfOutput** - Stop If Output
 

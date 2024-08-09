@@ -70,14 +70,57 @@ class JN_StopIfOutput:
 
         return {"ui": {}}
 
+class JN_Flow:
+    CATEGORY = CATEGORY_WORKFLOW
+    RETURN_TYPES = ("*",)
+    RETURN_NAMES = ("flow",)
+    FUNCTION = "run"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "optional": {
+                "flow": ("*",),
+                "dependency": ("*", {"multiple": True}),
+            },
+            "required": {
+            },
+        }
+
+    def run(self, flow=None, dependency=None):
+        return (flow,)
+
+class JN_FlowOutput:
+    CATEGORY = CATEGORY_WORKFLOW
+    RETURN_TYPES = ()
+    FUNCTION = "run"
+    OUTPUT_NODE = True
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "optional": {
+                "dependency": ("*", {"multiple": True}),
+            },
+            "required": {
+            },
+        }
+
+    def run(self, dependency=None):
+        return {"ui": {}}
+
 NODE_CLASS_MAPPINGS = {
     "JN_Condition": JN_Condition,
     "JN_StopIf": JN_StopIf,
     "JN_StopIfOutput": JN_StopIfOutput,
+    "JN_Flow": JN_Flow,
+    "JN_FlowOutput": JN_FlowOutput,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "JN_Condition": "Condition",
     "JN_StopIf": "Stop If",
     "JN_StopIfOutput": "Stop If Output",
+    "JN_Flow": "Flow",
+    "JN_FlowOutput": "Flow Output",
 }

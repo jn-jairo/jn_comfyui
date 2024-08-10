@@ -1,5 +1,6 @@
 import math
 from functools import reduce
+import numpy as np
 
 from ..utils import CATEGORY_PRIMITIVE_CONVERSION
 
@@ -14,9 +15,13 @@ def convert_constants(value):
     return value
 
 def to_boolean(value):
-    if isinstance(value, str):
+    if isinstance(value, bool):
+        value = value
+    elif isinstance(value, np.bool_):
+        value = bool(value)
+    elif isinstance(value, str):
         value = value.lower() == "true"
-    elif isinstance(value, (int, float, bool)):
+    elif isinstance(value, (int, float)):
         if math.isnan(value):
             value = False
         else:

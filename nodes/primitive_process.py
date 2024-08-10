@@ -25,6 +25,8 @@ def math_operation(a, b, operation):
         value = a ** b
     elif operation == "a ** (1/b)":
         value = a ** (1/b)
+    elif operation == "abs(a)":
+        value = abs(a)
     elif operation == "sqrt(a)":
         value = math.sqrt(a)
     elif operation == "exp(a)":
@@ -105,7 +107,7 @@ class JN_MathOperation:
     RETURN_TYPES = ("*",)
     FUNCTION = "run"
 
-    OPERATIONS = ["a + b", "a - b", "a * b", "a / b", "a // b", "a % b", "a ** b", "a ** (1/b)", "sqrt(a)", "exp(a)", "log(a)", "log(a, b)"]
+    OPERATIONS = ["a + b", "a - b", "a * b", "a / b", "a // b", "a % b", "a ** b", "a ** (1/b)", "abs(a)", "sqrt(a)", "exp(a)", "log(a)", "log(a, b)"]
 
     @classmethod
     def INPUT_TYPES(s):

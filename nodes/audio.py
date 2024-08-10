@@ -206,6 +206,29 @@ def audios_concatenate(audios, silence_seconds=0):
 
     return audio_batch
 
+class JN_AudioInfo:
+    CATEGORY = CATEGORY_AUDIO
+    RETURN_TYPES = ("FLOAT", "INT", "INT", "INT", "INT", "ARRAY")
+    RETURN_NAMES = ("seconds", "sample_rate", "samples", "channels", "batches", "shape")
+    FUNCTION = "run"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "audio": ("AUDIO",),
+            },
+        }
+
+    def run(self, audio):
+        sample_rate = audio["sample_rate"]
+        (batches, channels, samples) = audio["waveform"].shape
+        shape = list(audio["waveform"].shape)
+
+        seconds = samples / sample_rate
+
+        return (seconds, sample_rate, samples, channels, batches, shape)
+
 class JN_SaveAudio:
     CATEGORY = CATEGORY_AUDIO
     RETURN_TYPES = ()
@@ -1455,29 +1478,30 @@ class JN_AudioCompare:
             "required": {
                 "audios": ("*", {"multiple": True}),
 
-                "difference_limit": ("FLOAT", {"default": 250, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
+                "difference_limit": ("FLOAT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
 
                 "differences_aggregator": (s.AGGREGATORS,),
                 "features_aggregator": (s.AGGREGATORS,),
+                "samples_aggregator": (s.AGGREGATORS,),
 
                 "waveform": ("BOOLEAN", {"default": False}),
                 "pitch": ("BOOLEAN", {"default": False}),
-                "loudness": ("BOOLEAN", {"default": False}),
-                "strength": ("BOOLEAN", {"default": False}),
+                "loudness": ("BOOLEAN", {"default": True}),
+                "strength": ("BOOLEAN", {"default": True}),
 
-                "waveform_weight": ("FLOAT", {"default": 0.01, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
-                "pitch_weight": ("FLOAT", {"default": 0.05, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
+                "waveform_weight": ("FLOAT", {"default": 10, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
+                "pitch_weight": ("FLOAT", {"default": 10, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
                 "loudness_weight": ("FLOAT", {"default": 10, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
                 "strength_weight": ("FLOAT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 0.01}),
             },
         }
 
-    def run(self, audios, difference_limit=0,
-            differences_aggregator="average", features_aggregator="average",
-            waveform=False, waveform_weight=0,
-            pitch=False, pitch_weight=0,
-            loudness=False, loudness_weight=0,
-            strength=False, strength_weight=0):
+    def run(self, audios, difference_limit=1,
+            differences_aggregator="average", features_aggregator="average", samples_aggregator="average",
+            waveform=False, waveform_weight=10,
+            pitch=False, pitch_weight=10,
+            loudness=False, loudness_weight=10,
+            strength=False, strength_weight=1):
         audios = [JN_AudioArrayToBatch().run(audios=audios)[0]]
         audios = JN_AudioBatchToArray().run(audios=audios)[0]
 
@@ -1522,21 +1546,18 @@ class JN_AudioCompare:
                         channel_diff = []
 
                         if waveform:
-                            channel_diff.append(waveform_weight * np.sum(np.abs(features["waveform"][channel] - np_audio[channel])))
+                            channel_diff.append(waveform_weight * getattr(np, samples_aggregator)(np.abs(features["waveform"][channel] - np_audio[channel])))
                         if pitch:
                             _, audio_pitch = librosa.effects.hpss(np_audio[channel])
-                            channel_diff.append(pitch_weight * np.sum(np.abs(features["pitch"][channel] - audio_pitch)))
+                            channel_diff.append(pitch_weight * getattr(np, samples_aggregator)(np.abs(features["pitch"][channel] - audio_pitch)))
                         if loudness:
                             audio_loudness = librosa.feature.rms(y=np_audio[channel])[0]
-                            channel_diff.append(loudness_weight * np.sum(np.abs(features["loudness"][channel] - audio_loudness)))
+                            channel_diff.append(loudness_weight * getattr(np, samples_aggregator)(np.abs(features["loudness"][channel] - audio_loudness)))
                         if strength:
                             audio_strength = librosa.onset.onset_strength(y=np_audio[channel], sr=sample_rate)
-                            channel_diff.append(strength_weight * np.sum(np.abs(features["strength"][channel] - audio_strength)))
+                            channel_diff.append(strength_weight * getattr(np, samples_aggregator)(np.abs(features["strength"][channel] - audio_strength)))
 
-                        if features_aggregator == "sum":
-                            channel_diff = np.sum(channel_diff)
-                        else:
-                            channel_diff = np.average(channel_diff)
+                        channel_diff = getattr(np, features_aggregator)(channel_diff)
 
                         audio_diff.append(channel_diff)
 
@@ -1547,10 +1568,7 @@ class JN_AudioCompare:
                 differences.append(audio_diff)
 
         if len(differences) > 0:
-            if differences_aggregator == "sum":
-                difference = np.sum(differences)
-            else:
-                difference = np.average(differences)
+            difference = getattr(np, differences_aggregator)(differences)
         else:
             difference = np.inf
 
@@ -1559,6 +1577,7 @@ class JN_AudioCompare:
         return (equal, not equal, difference, differences)
 
 NODE_CLASS_MAPPINGS = {
+    "JN_AudioInfo": JN_AudioInfo,
     "JN_SaveAudio": JN_SaveAudio,
     "JN_PreviewAudio": JN_PreviewAudio,
     "JN_LoadAudioDirectory": JN_LoadAudioDirectory,
@@ -1589,6 +1608,7 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "JN_AudioInfo": "Audio Info",
     "JN_SaveAudio": "Save Audio",
     "JN_PreviewAudio": "Preview Audio",
     "JN_LoadAudioDirectory": "Load Audio Directory",

@@ -214,6 +214,7 @@ class ImageGrid:
 - **JN_AudioArrayToBatch** - Audio Array To Batch
 - **JN_AudioBatchToArray** - Audio Batch To Array
 - **JN_AudioCompare** - Audio Compare
+- **JN_AudioInfo** - Audio Info
 - **JN_AudioPlot** - Audio Plot
 - **JN_LoadAudioDirectory** - Load Audio Directory
 - **JN_PreviewAudio** - Preview Audio

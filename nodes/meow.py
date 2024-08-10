@@ -894,10 +894,11 @@ class JN_MeowSaveVoice:
                 "fine_tokens": ("MEOW_TTS_FINE_TOKENS",),
                 "target_tokens": ("MEOW_VC_TARGET_TOKENS",),
                 "filename_prefix": ("STRING", {"default": "meow_voice/ComfyUI"}),
+                "pitch_semitones": ("FLOAT", {"default": 0, "min": -0xffffffffffffffff, "max": 0xffffffffffffffff, "step": 0.5}),
             },
         }
 
-    def run(self, semantic_tokens, coarse_tokens, fine_tokens, target_tokens, filename_prefix):
+    def run(self, semantic_tokens, coarse_tokens, fine_tokens, target_tokens, filename_prefix, pitch_semitones=0):
         full_output_folder, filename, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(filename_prefix, self.output_dir)
 
         semantic_tokens = [semantic_tokens] if not isinstance(semantic_tokens, list) else semantic_tokens
@@ -914,6 +915,7 @@ class JN_MeowSaveVoice:
                 "coarse": coarse_tokens[i],
                 "fine": fine_tokens[i],
                 "speaker": target_tokens,
+                "pitch_semitones": pitch_semitones,
             }
 
             np.savez(file, **voice)
@@ -924,8 +926,8 @@ class JN_MeowSaveVoice:
 
 class JN_MeowLoadVoice:
     CATEGORY = CATEGORY_AUDIO_MEOW
-    RETURN_TYPES = ("MEOW_TTS_SEMANTIC_TOKENS", "MEOW_TTS_COARSE_TOKENS", "MEOW_TTS_FINE_TOKENS", "MEOW_VC_TARGET_TOKENS")
-    RETURN_NAMES = ("semantic_tokens", "coarse_tokens", "fine_tokens", "target_tokens")
+    RETURN_TYPES = ("MEOW_TTS_SEMANTIC_TOKENS", "MEOW_TTS_COARSE_TOKENS", "MEOW_TTS_FINE_TOKENS", "MEOW_VC_TARGET_TOKENS", "FLOAT")
+    RETURN_NAMES = ("semantic_tokens", "coarse_tokens", "fine_tokens", "target_tokens", "pitch_semitones")
     FUNCTION = "run"
 
     @classmethod
@@ -943,6 +945,7 @@ class JN_MeowLoadVoice:
         coarse_tokens = None
         fine_tokens = None
         target_tokens = None
+        pitch_semitones = 0
 
         file_path = folder_paths.get_annotated_filepath(voice)
         voice = np.load(file_path)
@@ -960,7 +963,10 @@ class JN_MeowLoadVoice:
             if "speaker" in voice:
                 target_tokens = torch.from_numpy(voice["speaker"])
 
-        return (semantic_tokens, coarse_tokens, fine_tokens, target_tokens)
+            if "pitch_semitones" in voice:
+                pitch_semitones = float(voice["pitch_semitones"])
+
+        return (semantic_tokens, coarse_tokens, fine_tokens, target_tokens, pitch_semitones)
 
     @classmethod
     def IS_CHANGED(s, voice):

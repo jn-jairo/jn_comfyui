@@ -408,9 +408,11 @@ class ImageGrid:
 
 ## References
 
-- [mav-rik/facerestore_cf](https://github.com/mav-rik/facerestore_cf) face restore
-- [suno-ai/bark](https://github.com/suno-ai/bark) text-to-speech
-- [OlaWod/FreeVC](https://github.com/OlaWod/FreeVC) voice conversion
+- [mav-rik/facerestore_cf](https://github.com/mav-rik/facerestore_cf) Face Restore
+- [suno-ai/bark](https://github.com/suno-ai/bark) Text-To-Speech
+- [OlaWod/FreeVC](https://github.com/OlaWod/FreeVC) Voice Conversion
+- [joe-habel/PyHRTFSweeper](https://github.com/joe-habel/PyHRTFSweeper) HRTF - Head-Related Transfer Functions
+- [amini-allight/cipic-hrtf-database](https://github.com/amini-allight/cipic-hrtf-database) CIPIC HRTF Database
 
 ## License
 

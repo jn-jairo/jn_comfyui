@@ -27,7 +27,14 @@ warnings.filterwarnings("ignore", category=UserWarning, message=".*Using padding
 
 from comfy_extras.nodes_audio import insert_or_replace_vorbis_comment
 
-from ..utils import CATEGORY_AUDIO, CATEGORY_AUDIO_CHANNELS, CATEGORY_AUDIO_SAMPLES, CATEGORY_AUDIO_EDIT, DEVICES, get_device
+from ..utils import (
+    CATEGORY_AUDIO,
+    CATEGORY_AUDIO_CHANNELS,
+    CATEGORY_AUDIO_SAMPLES,
+    CATEGORY_AUDIO_EDIT,
+    DEVICES,
+    get_device,
+)
 
 def batch_to_array(audio):
     if audio is None:
@@ -154,6 +161,21 @@ def audio_resample(audio, sample_rate, quality="soxr_vhq"):
     c_audio["waveform"] = torch.from_numpy(np_audio.copy()).to(audio["waveform"].device).to(audio["waveform"].dtype).unsqueeze(0)
 
     return c_audio
+
+def audios_split_channels(audios):
+    output = []
+
+    for audio in audios:
+        sample_rate = audio["sample_rate"]
+        (batches, channels, samples) = audio["waveform"].shape
+
+        for channel in range(channels):
+            output.append({
+                "sample_rate": sample_rate,
+                "waveform": audio["waveform"][:, channel, :].clone().reshape(batches, 1, samples),
+            })
+
+    return output
 
 def audios_stack_channels(audios):
     audio_batch = None
@@ -480,6 +502,28 @@ class JN_AudioStackChannels:
         audio_batch = audios_stack_channels(audios)
 
         return (audio_batch,)
+
+class JN_AudioSplitChannels:
+    CATEGORY = CATEGORY_AUDIO_CHANNELS
+    RETURN_TYPES = ("ARRAY",)
+    RETURN_NAMES = ("audios",)
+    FUNCTION = "run"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "audios": ("*", {"multiple": True}),
+            },
+        }
+
+    def run(self, audios):
+        audios = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), audios, [None])
+        audios = [audio for audio in audios if audio is not None]
+
+        audios = audios_split_channels(audios)
+
+        return (audios,)
 
 class JN_AudioSetChannels:
     CATEGORY = CATEGORY_AUDIO_CHANNELS
@@ -1590,6 +1634,7 @@ NODE_CLASS_MAPPINGS = {
     "JN_AudioSetChannels": JN_AudioSetChannels,
     "JN_AudioGetChannels": JN_AudioGetChannels,
     "JN_AudioStackChannels": JN_AudioStackChannels,
+    "JN_AudioSplitChannels": JN_AudioSplitChannels,
 
     "JN_AudioConcatenation": JN_AudioConcatenation,
     "JN_AudioSlice": JN_AudioSlice,
@@ -1621,6 +1666,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "JN_AudioSetChannels": "Audio Set Channels",
     "JN_AudioGetChannels": "Audio Get Channels",
     "JN_AudioStackChannels": "Audio Stack Channels",
+    "JN_AudioSplitChannels": "Audio Split Channels",
 
     "JN_AudioConcatenation": "Audio Concatenation",
     "JN_AudioSlice": "Audio Slice",

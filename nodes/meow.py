@@ -7,11 +7,24 @@ import numpy as np
 import hashlib
 import torch
 
-from ..utils import CATEGORY_AUDIO_MEOW, CATEGORY_AUDIO_MEOW_TTS, CATEGORY_AUDIO_MEOW_VC, DEVICES, get_device
+from ..utils import (
+    CATEGORY_AUDIO_MEOW,
+    CATEGORY_AUDIO_MEOW_TTS,
+    CATEGORY_AUDIO_MEOW_VC,
+    CATEGORY_AUDIO_MEOW_HRTF,
+    DEVICES,
+    get_device,
+)
 
-from ..extra.meow.model import get_model
+from ..extra.meow.model import get_model, HRTF_CIPIC_MODELS
 from ..extra.meow.base_model import ModelDeviceContext
-from ..extra.meow.utils import sentence_split, LANGUAGES_NAMES, TTS_LANGUAGES, TTS_VC_LANGUAGES, NLTK_LANGUAGES
+from ..extra.meow.utils import (
+    sentence_split,
+    LANGUAGES_NAMES,
+    TTS_LANGUAGES,
+    TTS_VC_LANGUAGES,
+    NLTK_LANGUAGES,
+)
 
 from .audio import batch_to_array
 
@@ -248,6 +261,30 @@ class JN_MeowVcModelFreeVC:
         base_dir = get_base_dir()
 
         model = get_model("freevc", device=device, base_dir=base_dir)
+        model.load()
+
+        return (model,)
+
+class JN_MeowHrtfModel:
+    CATEGORY = CATEGORY_AUDIO_MEOW_HRTF
+    RETURN_TYPES = ("MEOW_HRTF_MODEL",)
+    RETURN_NAMES = ("hrtf",)
+    FUNCTION = "run"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        models = [f"hrtf_cipic_{i}" for i in HRTF_CIPIC_MODELS]
+
+        return {
+            "required": {
+                "model": (models,),
+            },
+        }
+
+    def run(self, model):
+        base_dir = get_base_dir()
+
+        model = get_model(model, base_dir=base_dir)
         model.load()
 
         return (model,)
@@ -983,6 +1020,72 @@ class JN_MeowLoadVoice:
 
         return True
 
+class JN_MeowHrtfPosition:
+    CATEGORY = CATEGORY_AUDIO_MEOW_HRTF
+    RETURN_TYPES = ("MEOW_HRTF_POSITION", "ARRAY")
+    RETURN_NAMES = ("position", "positions")
+    FUNCTION = "run"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "azimuth_angle": ("INT", {"default": 0, "min": -90, "max": 90}),
+                "elevation_angle": ("INT", {"default": 0, "min": 0, "max": 270}),
+                "proximity": ("FLOAT", {"default": 1, "min": 0, "max": 0xffffffffffffffff, "step": 0.001}),
+                "delay_seconds": ("FLOAT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 0.001}),
+            },
+            "optional": {
+                "positions": ("*", {"multiple": True}),
+            },
+        }
+
+    def run(self, positions=None, azimuth_angle=0, elevation_angle=0, proximity=1, delay_seconds=0):
+        if positions is None:
+            positions = []
+
+        positions = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), positions, [None])
+        positions = [position for position in positions if position is not None]
+
+        position = {
+            "azimuth": azimuth_angle,
+            "elevation": elevation_angle,
+            "proximity": proximity,
+            "delay": delay_seconds,
+        }
+
+        positions.append(position)
+
+        return (position, positions)
+
+class JN_MeowHrtfAudio3d:
+    CATEGORY = CATEGORY_AUDIO_MEOW_HRTF
+    RETURN_TYPES = ("ARRAY",)
+    RETURN_NAMES = ("audios",)
+    FUNCTION = "run"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "hrtf": ("MEOW_HRTF_MODEL",),
+                "audios": ("*", {"multiple": True}),
+                "positions": ("*", {"multiple": True}),
+            },
+        }
+
+    def run(self, hrtf, audios, positions):
+        audios = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), audios, [None])
+        audios = [audio for audio in audios if audio is not None]
+        audios = reduce(lambda a, b: (a if isinstance(a, list) else batch_to_array(a)) + (b if isinstance(b, list) else batch_to_array(b)), audios, [])
+
+        positions = reduce(lambda a, b: (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b]), positions, [None])
+        positions = [position for position in positions if position is not None]
+
+        audios = hrtf.execute(audio=audios, positions=positions)
+
+        return (audios,)
+
 NODE_CLASS_MAPPINGS = {
     "JN_MeowTts": JN_MeowTts,
     "JN_MeowTtsSemantic": JN_MeowTtsSemantic,
@@ -1012,6 +1115,10 @@ NODE_CLASS_MAPPINGS = {
 
     "JN_MeowVcSaveSpeaker": JN_MeowVcSaveSpeaker,
     "JN_MeowVcLoadSpeaker": JN_MeowVcLoadSpeaker,
+
+    "JN_MeowHrtfAudio3d": JN_MeowHrtfAudio3d,
+    "JN_MeowHrtfPosition": JN_MeowHrtfPosition,
+    "JN_MeowHrtfModel": JN_MeowHrtfModel,
 
     "JN_MeowSentenceSplit": JN_MeowSentenceSplit,
     "JN_MeowSaveVoice": JN_MeowSaveVoice,
@@ -1047,6 +1154,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
     "JN_MeowVcSaveSpeaker": "Meow VC Save Speaker",
     "JN_MeowVcLoadSpeaker": "Meow VC Load Speaker",
+
+    "JN_MeowHrtfAudio3d": "Meow HRTF Audio 3D",
+    "JN_MeowHrtfPosition": "Meow HRTF Position",
+    "JN_MeowHrtfModel": "Meow HRTF Model",
 
     "JN_MeowSentenceSplit": "Meow Sentence Split",
     "JN_MeowSaveVoice": "Meow Save Voice",

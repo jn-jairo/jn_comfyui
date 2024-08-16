@@ -16,6 +16,8 @@ from .vc.models import (
     VcWavLMModel,
 )
 
+from .hrtf.models import HrtfCipicModel
+
 MODELS_INFO = {
     "semantic_base": {
         "name": "semantic_base",
@@ -117,7 +119,7 @@ MODELS_INFO = {
         "type": "hf",
         "repo_id": "GitMylo/bark-voice-cloning",
         "repo_path": "quantifier_V1_hubert_base_ls960_23.pth",
-        "filename": "hubert_tokenizer_en.pth",
+        "filename": "hubert_tokenizer/hubert_tokenizer_en.pth",
     },
     "hubert_tokenizer_de" : {
         "name": "hubert_tokenizer_de",
@@ -125,7 +127,7 @@ MODELS_INFO = {
         "type": "hf",
         "repo_id": "CountFloyd/bark-voice-cloning-german-HuBERT-quantizer",
         "repo_path": "german-HuBERT-quantizer_14_epoch.pth",
-        "filename": "hubert_tokenizer_de.pth",
+        "filename": "hubert_tokenizer/hubert_tokenizer_de.pth",
     },
     "hubert_tokenizer_ja" : {
         "name": "hubert_tokenizer_ja",
@@ -133,7 +135,7 @@ MODELS_INFO = {
         "type": "hf",
         "repo_id": "junwchina/bark-voice-cloning-japanese-HuBERT-quantizer",
         "repo_path": "japanese-HuBERT-quantizer_24_epoch.pth",
-        "filename": "hubert_tokenizer_ja.pth",
+        "filename": "hubert_tokenizer/hubert_tokenizer_ja.pth",
     },
     "hubert_tokenizer_pl" : {
         "name": "hubert_tokenizer_pl",
@@ -141,7 +143,7 @@ MODELS_INFO = {
         "type": "hf",
         "repo_id": "Hobis/bark-voice-cloning-polish-HuBERT-quantizer",
         "repo_path": "polish-HuBERT-quantizer_8_epoch.pth",
-        "filename": "hubert_tokenizer_pl.pth",
+        "filename": "hubert_tokenizer/hubert_tokenizer_pl.pth",
     },
     "hubert_tokenizer_pt" : {
         "name": "hubert_tokenizer_pt",
@@ -149,7 +151,7 @@ MODELS_INFO = {
         "type": "hf",
         "repo_id": "MadVoyager/bark-voice-cloning-portuguese-HuBERT-quantizer",
         "repo_path": "portuguese-HuBERT-quantizer_24_epoch.pth",
-        "filename": "hubert_tokenizer_pt.pth",
+        "filename": "hubert_tokenizer/hubert_tokenizer_pt.pth",
     },
     "hubert_tokenizer_tr" : {
         "name": "hubert_tokenizer_tr",
@@ -157,9 +159,66 @@ MODELS_INFO = {
         "type": "hf",
         "repo_id": "egeadam/bark-voice-cloning-turkish-HuBERT-quantizer",
         "repo_path": "turkish_model_epoch_14.pth",
-        "filename": "hubert_tokenizer_tr.pth",
+        "filename": "hubert_tokenizer/hubert_tokenizer_tr.pth",
     },
 }
+
+HRTF_CIPIC_MODELS = [
+    "003",
+    "008",
+    "009",
+    "010",
+    "011",
+    "012",
+    "015",
+    "017",
+    "018",
+    "019",
+    "020",
+    "021",
+    "027",
+    "028",
+    "033",
+    "040",
+    "044",
+    "048",
+    "050",
+    "051",
+    "058",
+    "059",
+    "060",
+    "061",
+    "065",
+    "119",
+    "124",
+    "126",
+    "127",
+    "131",
+    "133",
+    "134",
+    "135",
+    "137",
+    "147",
+    "148",
+    "152",
+    "153",
+    "154",
+    "155",
+    "156",
+    "158",
+    "162",
+    "163",
+    "165",
+]
+
+for i in HRTF_CIPIC_MODELS:
+    MODELS_INFO[f"hrtf_cipic_{i}"] = {
+        "name": f"hrtf_cipic_{i}",
+        "loader": HrtfCipicModel,
+        "type": "url",
+        "url": f"https://github.com/amini-allight/cipic-hrtf-database/raw/master/standard_hrir_database/subject_{i}/hrir_final.mat",
+        "filename": f"hrtf/hrtf_cipic_{i}.pt",
+    }
 
 def get_model(name, device=None, download=True, base_dir=None):
     info = MODELS_INFO[name]

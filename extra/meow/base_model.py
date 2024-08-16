@@ -44,9 +44,11 @@ class BaseModel:
         logging.info(f"Downloading model '{self.name}'")
 
         if self.info["type"] == "hf":
+            os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
             huggingface_hub.hf_hub_download(self.info["repo_id"], self.info["repo_path"], local_dir=self.base_dir)
             shutil.move(os.path.join(self.base_dir, self.info["repo_path"]), self.file_path)
         elif self.info["type"] == "url":
+            os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
             urllib.request.urlretrieve(self.info["url"], self.file_path)
         else:
             raise RuntimeError("Invalid model download method: " + self.info["type"])

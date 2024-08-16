@@ -138,7 +138,6 @@ It helps if you have low VRAM and enables you to generate bigger images.
 
 If you have a good GPU it changes nothing and it won't slow down your generations.
 
-
 ### Easy generic inputs
 
 Some nodes require inputs of any type, there are some hacks out there to do it, but the LiteGraph,
@@ -224,6 +223,7 @@ class ImageGrid:
 
 - **JN_AudioGetChannels** - Audio Get Channels
 - **JN_AudioSetChannels** - Audio Set Channels
+- **JN_AudioSplitChannels** - Audio Split Channels
 - **JN_AudioStackChannels** - Audio Stack Channels
 
 ### Audio > Samples
@@ -249,6 +249,12 @@ class ImageGrid:
 - **JN_MeowSentenceSplit** - Meow Sentence Split
 - **JN_MeowSaveVoice** - Meow Save Voice
 - **JN_MeowLoadVoice** - Meow Load Voice
+
+### Audio > Meow > HRTF
+
+- **JN_MeowHrtfAudio3d** - Meow HRTF Audio 3D
+- **JN_MeowHrtfModel** - Meow HRTF Model
+- **JN_MeowHrtfPosition** - Meow HRTF Position
 
 ### Audio > Meow > TTS
 
